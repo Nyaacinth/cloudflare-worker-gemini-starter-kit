@@ -2,6 +2,15 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
+		/* Rate Limit */ {
+			const { pathname } = new URL(request.url);
+			const { success } = await env.FREE_TIER_RATE_LIMITER.limit({ key: pathname });
+
+			if (!success) {
+				return new Response(`429 Failure - rate limit exceeded for ${pathname}`, { status: 429 });
+			}
+		}
+
 		const { searchParams } = new URL(request.url);
 		const prompt = searchParams.get('prompt');
 
